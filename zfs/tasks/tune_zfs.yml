@@ -1,0 +1,8 @@
+---
+- name: tune_zfs | tuning zfs performance
+  template:
+    src: modprobe_d_zfs_conf.j2
+    dest: /etc/modprobe.d/zfs.conf
+    owner: root
+    group: root
+    mode: 0644

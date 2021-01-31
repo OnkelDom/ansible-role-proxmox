@@ -1,0 +1,462 @@
+---
+- hosts: localhost
+  roles:
+  - proxmox/provisioning
+  vars:
+    hosts:
+    - host: onkeldom.pub.onkeldom.lan
+      pve_cores: 2
+      pve_memory: 2048
+      pve_vmid: 203
+      pve_virtio: '{"scsi0":"data:50"}'
+      pve_net: {"net0":"virtio=00:22:ff:00:02:03,bridge=vmbr1,firewall=0"}
+      ks_network:
+        ipv4_address: "192.168.2.3"
+        ipv4_netmask: "255.255.255.0"
+        ipv4_gateway: "192.168.2.1"
+        ipv4_nameservers: "192.168.1.21 192.168.1.22"
+        ipv6_address: "fdad:c001:1337:b00b:bab3:1922::3"
+        ipv6_cidr: "96"
+        ipv6_gateway: "fe80::1"
+      ks_pvs:
+        - name: pv.1
+          size: 38812
+          grow: true
+          ondrive: sda
+          crypt: false
+          volumegroups:
+            - name: system
+              logical_volumes:
+                - name: swap
+                  size: 1024
+                  path: swap
+                - name: root
+                  size: 15360
+                  fstype: xfs
+                  path: /
+                - name: log
+                  size: 5120
+                  fstype: xfs
+                  path: /var/log
+                - name: home
+                  size: 15360
+                  fstype: xfs
+                  path: /home
+    - host: lb01.mgmt.onkeldom.lan
+      pve_cores: 2
+      pve_memory: 2048
+      pve_vmid: 124
+      pve_virtio: '{"scsi0":"data:25"}'
+      pve_net: {"net0":"virtio=00:22:FF:00:01:24,bridge=vmbr0,firewall=0","net1":"virtio=00:22:FF:00:02:24,bridge=vmbr1,firewall=0"}
+      ks_network:
+        ipv4_address: "192.168.1.24"
+        ipv4_netmask: "255.255.255.0"
+        ipv4_gateway: "192.168.1.1"
+        ipv4_nameservers: "192.168.1.21 192.168.1.22"
+        ipv6_address: "fdad:c001:1337:b00b:bab3:1921::24"
+        ipv6_cidr: "96"
+        ipv6_gateway: "fe80::1"
+      ks_pvs:
+        - name: pv.1
+          size: 23552
+          grow: true
+          ondrive: sda
+          crypt: false
+          volumegroups:
+            - name: system
+              logical_volumes:
+                - name: swap
+                  size: 1024
+                  path: swap
+                - name: root
+                  size: 15360
+                  fstype: xfs
+                  path: /
+                - name: log
+                  size: 5120
+                  fstype: xfs
+                  path: /var/log
+    - host: lb02.mgmt.onkeldom.lan
+      pve_cores: 2
+      pve_memory: 2048
+      pve_vmid: 125
+      pve_virtio: '{"scsi0":"data:25"}'
+      pve_net: {"net0":"virtio=00:22:FF:00:01:25,bridge=vmbr0,firewall=0","net1":"virtio=00:22:FF:00:02:25,bridge=vmbr1,firewall=0"}
+      ks_network:
+        ipv4_address: "192.168.1.25"
+        ipv4_netmask: "255.255.255.0"
+        ipv4_gateway: "192.168.1.1"
+        ipv4_nameservers: "192.168.1.21 192.168.1.22"
+        ipv6_address: "fdad:c001:1337:b00b:bab3:1921::25"
+        ipv6_cidr: "96"
+        ipv6_gateway: "fe80::1"
+      ks_pvs:
+        - name: pv.1
+          size: 23552
+          grow: true
+          ondrive: sda
+          crypt: false
+          volumegroups:
+            - name: system
+              logical_volumes:
+                - name: swap
+                  size: 1024
+                  path: swap
+                - name: root
+                  size: 15360
+                  fstype: xfs
+                  path: /
+                - name: log
+                  size: 5120
+                  fstype: xfs
+                  path: /var/log
+    - host: proxy01.mgmt.onkeldom.lan
+      pve_cores: 2
+      pve_memory: 2048
+      pve_vmid: 126
+      pve_virtio: '{"scsi0":"data:25"}'
+      pve_net: {"net0":"virtio=00:22:FF:00:01:26,bridge=vmbr0,firewall=0"}
+      ks_network:
+        ipv4_address: "192.168.1.26"
+        ipv4_netmask: "255.255.255.0"
+        ipv4_gateway: "192.168.1.1"
+        ipv4_nameservers: "192.168.1.21 192.168.1.22"
+        ipv6_address: "fdad:c001:1337:b00b:bab3:1921::26"
+        ipv6_cidr: "96"
+        ipv6_gateway: "fe80::1"
+      ks_pvs:
+        - name: pv.1
+          size: 23552
+          grow: true
+          ondrive: sda
+          crypt: false
+          volumegroups:
+            - name: system
+              logical_volumes:
+                - name: swap
+                  size: 1024
+                  path: swap
+                - name: root
+                  size: 15360
+                  fstype: xfs
+                  path: /
+                - name: log
+                  size: 5120
+                  fstype: xfs
+                  path: /var/log
+    - host: proxy02.mgmt.onkeldom.lan
+      pve_cores: 2
+      pve_memory: 2048
+      pve_vmid: 127
+      pve_virtio: '{"scsi0":"data:25"}'
+      pve_net: {"net0":"virtio=00:22:FF:00:01:27,bridge=vmbr0,firewall=0"}
+      ks_network:
+        ipv4_address: "192.168.1.27"
+        ipv4_netmask: "255.255.255.0"
+        ipv4_gateway: "192.168.1.1"
+        ipv4_nameservers: "192.168.1.21 192.168.1.22"
+        ipv6_address: "fdad:c001:1337:b00b:bab3:1921::27"
+        ipv6_cidr: "96"
+        ipv6_gateway: "fe80::1"
+      ks_pvs:
+        - name: pv.1
+          size: 23552
+          grow: true
+          ondrive: sda
+          crypt: false
+          volumegroups:
+            - name: system
+              logical_volumes:
+                - name: swap
+                  size: 1024
+                  path: swap
+                - name: root
+                  size: 15360
+                  fstype: xfs
+                  path: /
+                - name: log
+                  size: 5120
+                  fstype: xfs
+                  path: /var/log
+    - host: dash01.mgmt.onkeldom.lan
+      pve_cores: 2
+      pve_memory: 2048
+      pve_vmid: 128
+      pve_virtio: '{"scsi0":"data:25"}'
+      pve_net: {"net0":"virtio=00:22:FF:00:01:28,bridge=vmbr0,firewall=0"}
+      ks_network:
+        ipv4_address: "192.168.1.28"
+        ipv4_netmask: "255.255.255.0"
+        ipv4_gateway: "192.168.1.1"
+        ipv4_nameservers: "192.168.1.21 192.168.1.22"
+        ipv6_address: "fdad:c001:1337:b00b:bab3:1921::28"
+        ipv6_cidr: "96"
+        ipv6_gateway: "fe80::1"
+      ks_pvs:
+        - name: pv.1
+          size: 23552
+          grow: true
+          ondrive: sda
+          crypt: false
+          volumegroups:
+            - name: system
+              logical_volumes:
+                - name: swap
+                  size: 1024
+                  path: swap
+                - name: root
+                  size: 15360
+                  fstype: xfs
+                  path: /
+                - name: log
+                  size: 5120
+                  fstype: xfs
+                  path: /var/log
+    - host: prom01.mgmt.onkeldom.lan
+      pve_cores: 2
+      pve_memory: 2048
+      pve_vmid: 129
+      pve_virtio: '{"scsi0":"data:25","scsi1":"data:250"}'
+      pve_net: {"net0":"virtio=00:22:FF:00:01:29,bridge=vmbr0,firewall=0"}
+      ks_network:
+        ipv4_address: "192.168.1.29"
+        ipv4_netmask: "255.255.255.0"
+        ipv4_gateway: "192.168.1.1"
+        ipv4_nameservers: "192.168.1.21 192.168.1.22"
+        ipv6_address: "fdad:c001:1337:b00b:bab3:1921::29"
+        ipv6_cidr: "96"
+        ipv6_gateway: "fe80::1"
+      ks_pvs:
+        - name: pv.1
+          size: 23552
+          grow: true
+          ondrive: sda
+          crypt: false
+          volumegroups:
+            - name: system
+              logical_volumes:
+                - name: swap
+                  size: 1024
+                  path: swap
+                - name: root
+                  size: 15360
+                  fstype: xfs
+                  path: /
+                - name: log
+                  size: 5120
+                  fstype: xfs
+                  path: /var/log
+        - name: pv.2
+          size: 8192
+          grow: true
+          ondrive: sdb
+          crypt: false
+          volumegroups:
+            - name: content
+              logical_volumes:
+                - name: prometheus
+                  size: 30720
+                  path: /opt/prometheus
+    - host: alert01.mgmt.onkeldom.lan
+      pve_cores: 2
+      pve_memory: 2048
+      pve_vmid: 130
+      pve_virtio: '{"scsi0":"data:25","scsi1":"data:50"}'
+      pve_net: {"net0":"virtio=00:22:FF:00:01:30,bridge=vmbr0,firewall=0"}
+      ks_network:
+        ipv4_address: "192.168.1.30"
+        ipv4_netmask: "255.255.255.0"
+        ipv4_gateway: "192.168.1.1"
+        ipv4_nameservers: "192.168.1.21 192.168.1.22"
+        ipv6_address: "fdad:c001:1337:b00b:bab3:1921::30"
+        ipv6_cidr: "96"
+        ipv6_gateway: "fe80::1"
+      ks_pvs:
+        - name: pv.1
+          size: 23552
+          grow: true
+          ondrive: sda
+          crypt: false
+          volumegroups:
+            - name: system
+              logical_volumes:
+                - name: swap
+                  size: 1024
+                  path: swap
+                - name: root
+                  size: 15360
+                  fstype: xfs
+                  path: /
+                - name: log
+                  size: 5120
+                  fstype: xfs
+                  path: /var/log
+        - name: pv.2
+          size: 8192
+          grow: true
+          ondrive: sdb
+          crypt: false
+          volumegroups:
+            - name: content
+              logical_volumes:
+                - name: data
+                  size: 15360
+                  path: /opt/alert
+    - host: elastic01.mgmt.onkeldom.lan
+      pve_cores: 2
+      pve_memory: 4096
+      pve_vmid: 131
+      pve_virtio: '{"scsi0":"data:25","scsi1":"data:250"}'
+      pve_net: {"net0":"virtio=00:22:FF:00:01:31,bridge=vmbr0,firewall=0"}
+      ks_network:
+        ipv4_address: "192.168.1.31"
+        ipv4_netmask: "255.255.255.0"
+        ipv4_gateway: "192.168.1.1"
+        ipv4_nameservers: "192.168.1.21 192.168.1.22"
+        ipv6_address: "fdad:c001:1337:b00b:bab3:1921::31"
+        ipv6_cidr: "96"
+        ipv6_gateway: "fe80::1"
+      ks_pvs:
+        - name: pv.1
+          size: 23552
+          grow: true
+          ondrive: sda
+          crypt: false
+          volumegroups:
+            - name: system
+              logical_volumes:
+                - name: swap
+                  size: 1024
+                  path: swap
+                - name: root
+                  size: 15360
+                  fstype: xfs
+                  path: /
+                - name: log
+                  size: 5120
+                  fstype: xfs
+                  path: /var/log
+        - name: pv.2
+          size: 8192
+          grow: true
+          ondrive: sdb
+          crypt: false
+          volumegroups:
+            - name: content
+              logical_volumes:
+                - name: data
+                  size: 15360
+                  path: /opt/elastic
+    - host: git01.mgmt.onkeldom.lan
+      pve_cores: 2
+      pve_memory: 2048
+      pve_vmid: 132
+      pve_virtio: '{"scsi0":"data:25","scsi1":"data:50"}'
+      pve_net: {"net0":"virtio=00:22:FF:00:01:32,bridge=vmbr0,firewall=0"}
+      ks_network:
+        ipv4_address: "192.168.1.32"
+        ipv4_netmask: "255.255.255.0"
+        ipv4_gateway: "192.168.1.1"
+        ipv4_nameservers: "192.168.1.21 192.168.1.22"
+        ipv6_address: "fdad:c001:1337:b00b:bab3:1921::32"
+        ipv6_cidr: "96"
+        ipv6_gateway: "fe80::1"
+      ks_pvs:
+        - name: pv.1
+          size: 23552
+          grow: true
+          ondrive: sda
+          crypt: false
+          volumegroups:
+            - name: system
+              logical_volumes:
+                - name: swap
+                  size: 1024
+                  path: swap
+                - name: root
+                  size: 15360
+                  fstype: xfs
+                  path: /
+                - name: log
+                  size: 5120
+                  fstype: xfs
+                  path: /var/log
+        - name: pv.2
+          size: 8192
+          grow: true
+          ondrive: sdb
+          crypt: false
+          volumegroups:
+            - name: content
+              logical_volumes:
+                - name: git
+                  size: 15360
+                  path: /opt/git
+    - host: doku01.mgmt.onkeldom.lan
+      pve_cores: 2
+      pve_memory: 2048
+      pve_vmid: 133
+      pve_virtio: '{"scsi0":"data:25"}'
+      pve_net: {"net0":"virtio=00:22:FF:00:01:33,bridge=vmbr0,firewall=0"}
+      ks_network:
+        ipv4_address: "192.168.1.33"
+        ipv4_netmask: "255.255.255.0"
+        ipv4_gateway: "192.168.1.1"
+        ipv4_nameservers: "192.168.1.21 192.168.1.22"
+        ipv6_address: "fdad:c001:1337:b00b:bab3:1921::33"
+        ipv6_cidr: "96"
+        ipv6_gateway: "fe80::1"
+      ks_pvs:
+        - name: pv.1
+          size: 23552
+          grow: true
+          ondrive: sda
+          crypt: false
+          volumegroups:
+            - name: system
+              logical_volumes:
+                - name: swap
+                  size: 1024
+                  path: swap
+                - name: root
+                  size: 15360
+                  fstype: xfs
+                  path: /
+                - name: log
+                  size: 5120
+                  fstype: xfs
+                  path: /var/log
+    - host: db01.mgmt.onkeldom.lan
+      pve_cores: 2
+      pve_memory: 2048
+      pve_vmid: 134
+      pve_virtio: '{"scsi0":"data:25","scsi1":"data:50"}'
+      pve_net: {"net0":"virtio=00:22:FF:00:01:34,bridge=vmbr0,firewall=0"}
+      ks_network:
+        ipv4_address: "192.168.1.34"
+        ipv4_netmask: "255.255.255.0"
+        ipv4_gateway: "192.168.1.1"
+        ipv4_nameservers: "192.168.1.21 192.168.1.22"
+        ipv6_address: "fdad:c001:1337:b00b:bab3:1921::34"
+        ipv6_cidr: "96"
+        ipv6_gateway: "fe80::1"
+      ks_pvs:
+        - name: pv.1
+          size: 23552
+          grow: true
+          ondrive: sda
+          crypt: false
+          volumegroups:
+            - name: system
+              logical_volumes:
+                - name: swap
+                  size: 1024
+                  path: swap
+                - name: root
+                  size: 15360
+                  fstype: xfs
+                  path: /
+                - name: log
+                  size: 5120
+                  fstype: xfs
+                  path: /var/log

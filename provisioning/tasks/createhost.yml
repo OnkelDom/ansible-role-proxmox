@@ -1,0 +1,93 @@
+---
+- name: create iso folder
+  file:
+    path: "{{ basefolder }}/centos_{{ os_centos_version }}_x86_64_{{ isohostname.host }}-ks"
+    state: directory
+    mode: 0775
+- name: copy isolinux.bin file
+  copy:
+    src: "{{ basefolder }}/centos_{{ os_centos_version }}_x86_64_base-ks/isolinux.bin"
+    dest: "{{ basefolder }}/centos_{{ os_centos_version }}_x86_64_{{ isohostname.host }}-ks/isolinux.bin"
+    mode: 0644
+- name: copy initrd.img file
+  copy:
+    src: "{{ basefolder }}/centos_{{ os_centos_version }}_x86_64_base-ks/initrd.img"
+    dest: "{{ basefolder }}/centos_{{ os_centos_version }}_x86_64_{{ isohostname.host }}-ks/initrd.img"
+    mode: 0644
+- name: copy vmlinuz file
+  copy:
+    src: "{{ basefolder }}/centos_{{ os_centos_version }}_x86_64_base-ks/vmlinuz"
+    dest: "{{ basefolder }}/centos_{{ os_centos_version }}_x86_64_{{ isohostname.host }}-ks/vmlinuz"
+    mode: 0775
+- name: copy ldlinux.c32 file
+  copy:
+    src: "{{ basefolder }}/centos_{{ os_centos_version }}_x86_64_base-ks/ldlinux.c32"
+    dest: "{{ basefolder }}/centos_{{ os_centos_version }}_x86_64_{{ isohostname.host }}-ks/ldlinux.c32"
+    mode: 0644
+- name: copy libcom32.c32 file
+  copy:
+    src: "{{ basefolder }}/centos_{{ os_centos_version }}_x86_64_base-ks/libcom32.c32"
+    dest: "{{ basefolder }}/centos_{{ os_centos_version }}_x86_64_{{ isohostname.host }}-ks/libcom32.c32"
+    mode: 0775
+- name: copy libutil.c32 file
+  copy:
+    src: "{{ basefolder }}/centos_{{ os_centos_version }}_x86_64_base-ks/libutil.c32"
+    dest: "{{ basefolder }}/centos_{{ os_centos_version }}_x86_64_{{ isohostname.host }}-ks/libutil.c32"
+    mode: 0775
+- name: copy ldlinux.c32 file
+  copy:
+    src: "{{ basefolder }}/centos_{{ os_centos_version }}_x86_64_base-ks/ldlinux.c32"
+    dest: "{{ basefolder }}/centos_{{ os_centos_version }}_x86_64_{{ isohostname.host }}-ks/ldlinux.c32"
+    mode: 0775
+- name: create isolinux.cfg
+  copy:
+    dest: "{{ basefolder }}/centos_{{ os_centos_version }}_x86_64_{{ isohostname.host }}-ks/isolinux.cfg"
+    content: |
+      default kickstart
+      timeout 5
+      label kickstart
+      menu label ^Install CentOS 8 with Kickstart
+      menu default
+      kernel vmlinuz
+      append initrd=initrd.img inst.stage2=hd:LABEL=CentOS-8-BaseOS-x86_64 quiet net.ifnames=0 biosdevname=0 inst.ks={{ ks_path }}
+- name: generate ks.cfg
+  template:
+    src: "ks.cfg.j2"
+    dest: "{{ basefolder }}/centos_{{ os_centos_version }}_x86_64_{{ isohostname.host }}-ks/ks.cfg"
+    validate: /usr/bin/ksvalidator %s
+    mode: 0644
+- name: generate iso file
+  command: "/usr/bin/genisoimage -o {{ basefolder }}/centos_{{ os_centos_version }}_x86_64_base-ks/centos_{{ os_centos_version }}_x86_64_{{ isohostname.host }}-ks.iso -b isolinux.bin -no-emul-boot -boot-load-size 4 -boot-info-table -J -R -v -T -V 'CentOS 8 x86_64' {{ basefolder }}/centos_{{ os_centos_version }}_x86_64_{{ isohostname.host }}-ks"
+- name: remove old files
+  file:
+    state: absent
+    path: "{{ basefolder }}/centos_{{ os_centos_version }}_x86_64_{{ isohostname.host }}-ks"
+- name: push iso to pve
+  command: "rsync -4av -e 'ssh -i {{ serviceaccount_ssh_pubkey_path }}' --rsync-path='sudo rsync' {{ basefolder }}/centos_{{ os_centos_version }}_x86_64_base-ks/centos_{{ os_centos_version }}_x86_64_{{ isohostname.host }}-ks.iso {{ serviceaccount }}@{{ proxmox_api_host }}:/var/lib/vz/template/iso/centos_{{ os_centos_version }}_x86_64_{{ isohostname.host }}-ks.iso"
+- name: create proxmox vm
+  proxmox_kvm:
+    api_user: "{{ proxmox_api_user }}"
+    api_password: "{{ proxmox_api_pass }}"
+    api_host: "{{ proxmox_api_host }}"
+    node: "{{ proxmox_api_node }}"
+    storage: "{{ proxmox_datastore }}"
+    name: "{{ isohostname.host }}"
+    net: '{{ isohostname.pve_net }}'
+    cores: "{{ isohostname.pve_cores }}"
+    memory: "{{ isohostname.pve_memory }}"
+    balloon: 512
+    vmid: "{{ isohostname.pve_vmid }}"
+    boot: cdn
+    scsihw: virtio-scsi-pci
+    virtio: '{{ isohostname.pve_virtio }}'
+    ide: '{"ide0":"local:iso/centos_{{ os_centos_version }}_x86_64_{{ isohostname.host }}-ks.iso,media=cdrom"}'
+- pause:
+    seconds: 15
+- name: start proxmox vm
+  proxmox_kvm:
+    api_user: "{{ proxmox_api_user }}"
+    api_password: "{{ proxmox_api_pass }}"
+    api_host: "{{ proxmox_api_host }}"
+    node: "{{ proxmox_api_node }}"
+    name: "{{ isohostname.host }}"
+    state: started

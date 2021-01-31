@@ -1,0 +1,68 @@
+---
+zfs_pools:  #defines zpool(s) to manage
+  - name: 'share'
+    action: 'create'
+#    atime: 'on'
+    compression: 'lz4'
+    devices:
+      - 'ata-ST2000DL004_HD204UI_S2H7J90C541284'
+      - 'ata-ST2000DL004_HD204UI_S2H7J90C541283'
+      - 'ata-ST2000DL004_HD204UI_S2H7J90C541392'
+      - 'ata-ST2000DL004_HD204UI_S2H7J90C541262'
+    type: 'raidz'
+    state: 'present'
+  - name: 'data'
+    action: 'create'
+#    atime: 'on'
+    compression: 'lz4'
+    devices:
+      - 'ata-WDC_WD40EFRX-68WT0N0_WD-WCC4E1171196'
+      - 'ata-WDC_WD40EFRX-68WT0N0_WD-WCC4E6UXUDDU'
+    type: 'mirror'
+    state: 'present'
+  - name: 'data'
+    action: 'add'
+    compression: 'lz4'
+    devices:
+      - 'ata-Samsung_SSD_850_PRO_256GB_S1SUNSAFB36072E'
+      - 'ata-Samsung_SSD_850_PRO_256GB_S1SUNSAFB36075J'
+    type: 'log mirror'
+    state: 'present'
+  - name: 'data'
+    action: 'add'
+    compression: 'lz4'
+    devices:
+      - 'ata-SanDisk_SDSSDP128G_151179400128'
+    type: 'cache'
+    state: 'present'
+
+# Defines if paramaters defined in zfs_performance_tuning are applied
+zfs_enable_performance_tuning: true
+zfs_performance_tuning:
+  - param: zfs_prefetch_disable
+    value: 1
+  - param: zfs_txg_timeout
+    value: 5
+  - param: zfs_arc_max
+    # 20% total system memory
+    value: "{{ (ansible_memtotal_mb | int * 1024 * 1024 * 0.2) | round | int }}"
+  - param: zfs_arc_meta_limit
+    # 1/4 zfs_arc_maxSS
+    value: "{{ (ansible_memtotal_mb | int * 1024 * 1024 * 0.05) | round | int }}"
+  - param: zfs_arc_min
+    # 1/2 zfs_arc_meta_limit
+    value: "{{ (ansible_memtotal_mb | int * 1024 * 1024 * 0.025) | round | int }}"
+
+# defines global scrub cron job parameters. Only applies when `zfs_enable_monitoring` is set to True.
+zfs_pools_scrub_cron:
+  minute: 0
+  hour: 0
+  day: "*"
+  month: "*"
+  weekday: sun
+zfs_enable_monitoring: True
+# in percentage.
+zfs_monitoring_capacity_threshold: 80
+# in days.
+zfs_monitoring_scrub_max_age: 8
+zfs_monitoring_email_dest: service@{{ mail_domain }}

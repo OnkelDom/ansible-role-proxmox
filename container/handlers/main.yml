@@ -1,0 +1,16 @@
+---
+# handlers file
+- name: pve start container
+  proxmox:
+    vmid: "{{ pve_vmid | default(pve_new_vmid) | int }}"
+    api_user: "{{ pve_api_user }}"
+    api_password: "{{ pve_api_pass }}"
+    api_host: "{{ pve_api_host }}"
+    state: started
+  delegate_to: "{{ pve_host }}"
+  register: pve_info_state
+
+- name: set vmid
+  set_fact:
+    pve_new_vmid:  "{{ pve_info.msg.split(' ')[2] }}"
+  when: pve_vmid is not defined

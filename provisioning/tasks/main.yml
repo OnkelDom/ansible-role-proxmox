@@ -1,0 +1,41 @@
+---
+- name: install needed packages
+  package:
+    name:
+    - wget
+    - rsync
+    - genisoimage
+    state: present
+- name: install needed pip3 packages
+  pip:
+    name:
+    - proxmoxer
+    - requests
+    state: present
+    executable: pip3
+- name: create base folder
+  file:
+    path: "{{ basefolder }}/centos_{{ os_centos_version }}_x86_64_base-ks"
+    state: directory
+    mode: 0775
+- name: download vmlinuz, initrd.img, isolinux.bin
+  get_url:
+    url: "{{ item.url }}"
+    dest: "{{ basefolder }}/centos_{{ os_centos_version }}_x86_64_base-ks/"
+    mode: "{{ item.mode }}"
+  with_items:
+  - url: "http://mirror.centos.org/centos/{{ os_centos_version }}/BaseOS/x86_64/kickstart/isolinux/vmlinuz"
+    mode: "0775"
+  - url: "http://mirror.centos.org/centos/{{ os_centos_version }}/BaseOS/x86_64/kickstart/isolinux/initrd.img"
+    mode: "0644"
+  - url: "http://mirror.centos.org/centos/{{ os_centos_version }}/BaseOS/x86_64/kickstart/isolinux/isolinux.bin"
+    mode: "0644"
+  - url: "http://mirror.centos.org/centos/{{ os_centos_version }}/BaseOS/x86_64/kickstart/isolinux/ldlinux.c32"
+    mode: "0644"
+  #- url: "http://mirror.centos.org/centos/{{ os_centos_version }}/BaseOS/x86_64/os/isolinux/libcom32.c32"
+  #  mode: "0644"
+  #- url: "http://mirror.centos.org/centos/{{ os_centos_version }}/BaseOS/x86_64/os/isolinux/libutil.c32"
+  #  mode: "0644"
+
+- include: createhost.yml isohostname="{{item}}"
+  with_items: "{{ hosts }}"

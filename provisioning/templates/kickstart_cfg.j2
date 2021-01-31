@@ -1,0 +1,73 @@
+# network Configs
+keyboard us
+# root password
+rootpw --iscrypted {{ root_pass }}
+# system language
+lang en_US.UTF-8
+# accept the eula
+eula --agreed
+# reboot after installation
+reboot --eject
+# system timezone
+timezone Europe/Berlin
+# use text mode install
+text
+# network information
+network --device=eth0 --bootproto=dhcp --ipv6=dhcp --onboot=on --activate --hostname={{ isohostname.host }}
+# network repo url
+url --url={{ install_url }}
+# system authorization information
+auth  --useshadow  --passalgo=sha512
+# firewall configuration
+#firewall --enabled --service=ssh
+firewall --disabled
+# seLinux configuration
+selinux --permissive
+# enable Services
+services --enabled sshd
+# do not configure the X Window System
+skipx
+# installation logging level
+logging --level=info
+# system bootloader configuration
+bootloader --location=mbr --driveorder=sda,hda,vda --append="rhgb novga  console=ttyS0,9600 console=tty0 crashkernel=showopts panic=1 numa=off noht" --timeout=10
+# clear the Master Boot Record
+zerombr
+# partition clearing information
+clearpart --all --initlabel
+# disk partitioning information
+part /boot --size 1024 --asprimary --fstype=ext4 --ondrive=sda
+part pv.1 --size 24570 --grow --ondrive=sda
+volgroup system pv.1
+logvol swap     --vgname system --size=1024 --name=swap
+logvol /        --fstype xfs --vgname system --size=16384 --name=root
+logvol /var/log --fstype xfs --vgname system --size=5120  --name=log
+# add default user
+user --name={{ serviceaccount }} --homedir=/home/{{ serviceaccount }} --shell=/bin/bash --uid=1000 --gid=1000 --iscrypted --password {{ serviceaccount_pass }}
+
+### install needed packages
+%packages --ignoremissing
+@core
+sudo
+openssh-server
+-NetworkManager
+-chrony
++ntp
+%end
+
+%post --log=/root/ks-post.log
+### create serviceaccount .ssh folder and set ownership and permissions
+mkdir -p /home/{{ serviceaccount }}/.ssh
+chmod 700 /home/{{ serviceaccount }}/.ssh
+### add ssh authorized_key
+cat  << 'xxEOFxx' >> /home/{{ serviceaccount }}/.ssh/authorized_keys
+{{ serviceaccount_ssh_key }}
+xxEOFxx
+### change serviceaccount authorized_keys ownership and persmissions
+chmod 0600 /home/{{ serviceaccount }}/.ssh/authorized_keys
+chown -R {{ serviceaccount }}:{{ serviceaccount }} /home/{{ serviceaccount }}/
+### add serviceaccount passwordless sudo
+echo '{{ serviceaccount }} ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/user-{{ serviceaccount }}
+### install epel-release
+yum update -y && yum install -y epel-release
+%end

@@ -1,0 +1,225 @@
+# {{ ansible_managed }}
+
+ignoredisk --only-use=sda
+
+# System bootloader configuration
+bootloader --append="rhgb novga console=ttyS0,9600 console=tty0 panic=1 numa=off noht  crashkernel=auto" --location=mbr --driveorder="sda" --timeout=10 --boot-drive=sda
+
+# Clear the Master Boot Record
+zerombr
+
+# Partition clearing information
+clearpart --all --initlabel
+
+# Accept the EULA
+eula --agreed
+
+# Reboot after installation
+reboot --eject
+
+# Use text mode install
+text
+
+# Network config
+{% if ks_network is defined %}
+network --activate --onboot=on --bootproto=static --ip={{ ks_network.ipv4_address }} --netmask={{ ks_network.ipv4_netmask }} --gateway={{ ks_network.ipv4_gateway }} --nameserver={{ ks_network.ipv4_nameservers }} {% if ks_network.ipv6_address is defined %}--ipv6={{ ks_network.ipv6_address }}/{{ ks_network.ipv6_cidr }}{% endif %} {% if ks_network.ipv6_gateway is defined %}--ipv6gateway={{ ks_network.ipv6_gateway }}{% endif %} --hostname={{ ks_network.hostname }}
+{% endif %}
+
+# keyboardf settings
+keyboard --vckeymap={{ ks_keyboard_layout }} --xlayouts=''
+
+# Root password
+rootpw --iscrypted {{ ks_root_pass }} --lock
+
+# System language
+lang {{ ks_system_lang }}
+
+# System timezone
+timezone {{ ks_timezone }}
+
+# Add epel repo for installation
+{% if os_install == "centos" and os_centos_version == "7.5.1804" %}
+#repo --name="EPEL" --baseurl=http://dl.fedoraproject.org/pub/epel/7/{{ os_arch }}/
+{% endif %}
+{% if os_install == "centos" and os_centos_version == "7.6.1810" %}
+#repo --name="EPEL" --baseurl=http://dl.fedoraproject.org/pub/epel/7/{{ os_arch }}/
+{% endif %}
+{% if os_install == "centos" and os_centos_version == "7.7.1908" %}
+#repo --name="EPEL" --baseurl=http://dl.fedoraproject.org/pub/epel/7/{{ os_arch }}/
+{% endif %}
+{% if os_install == "centos" and os_centos_version == "8.0.1905" %}
+#repo --name="EPEL" --baseurl=http://dl.fedoraproject.org/pub/epel/8/{{ os_arch }}/
+{% endif %}
+
+# System authorization information
+authselect --useshadow --passalgo=sha512
+
+# Network installation url
+{% if os_install == "fedora" %}
+url --noverifyssl --url https://dl.fedoraproject.org/pub/fedora/linux/releases/{{ os_fedora_version }}/Everything/{{ os_arch }}/os/
+{% endif %}
+{% if os_install == "centos" and os_centos_version == "7.5.1804" %}
+url --noverifyssl --url http://mirror.centos.org/centos/{{ os_centos_version }}/os/{{ os_arch }}/
+{% endif %}
+{% if os_install == "centos" and os_centos_version == "7.6.1810" %}
+url --noverifyssl --url http://mirror.centos.org/centos/{{ os_centos_version }}/os/{{ os_arch }}/
+{% endif %}
+{% if os_install == "centos" and os_centos_version == "7.7.1908" %}
+url --noverifyssl --url http://mirror.centos.org/centos/{{ os_centos_version }}/os/{{ os_arch }}/
+{% endif %}
+{% if os_install == "centos" and os_centos_version == "8.0.1905" %}
+url --noverifyssl --url http://mirror.centos.org/centos/{{ os_centos_version }}/BaseOS/{{ os_arch }}/os/
+{% endif %}
+
+# Firewall configuration
+firewall --enabled --service=sshd
+
+# SELinux configuration
+selinux --permissive
+
+# Enable Services
+services --enabled="sshd,firewalld,chronyd"
+
+# Do not configure the X Window System
+skipx
+
+# Installation logging level
+logging --level=info
+
+# Create useraccounts
+{% if ks_users is defined %}
+{%  for user in ks_users %}
+user --name={{ user.username }} --groups={{ user.groups }} --homedir=/home/{{ user.username }} --shell=/bin/bash --uid={{ user.id }} --gid={{ user.id }} --iscrypted --password {{ user.password }}
+{%  endfor %}
+{% endif %}
+
+# Create boot
+part /boot --size 1024 --asprimary --fstype=ext4 --ondrive=sda
+
+# Create pvs,vgs and lvms
+{% if ks_pvs is defined %}
+{%  for pvs in ks_pvs %}
+part {{ pvs.name }} --size {{ pvs.size|default('8192') }} {% if pvs.grow is sameas true|default(true) %}--grow{% endif %} --ondrive={{ pvs.ondrive|default('sda') }} {% if pvs.crypt is sameas true|default(false) %}--encrypted --passphrase={{ pvs.crypt_pass }}{% endif %}
+
+{%   for vgs in pvs.volumegroups %}
+volgroup {{ vgs.name }} {{ pvs.name }}
+{%    for lvm in vgs.logical_volumes %}
+logvol {% if lvm.path is defined %}{{ lvm.path }}{% endif %} --vgname={{ vgs.name }} {% if lvm.fstype is defined %}--fstype={{ lvm.fstype }}{% endif %} --size={{ lvm.size }} --name={{ lvm.name }}
+{%    endfor %}
+{%   endfor %}
+{%  endfor %}
+{% endif %}
+
+### install needed packages
+%packages --ignoremissing
+@core
+sudo
+openssh-server
+ca-certificates
+openssl
+bash-completion
+firewalld
+{% if os_install == "centos" and os_centos_version == "8.0.1905" %}
+epel-release
+python3
+{% endif %}
+{% if os_install == "centos" and os_centos_version == "7.5.1804" %}
+python
+epel-release
+-NetworkManager*
+{% endif %}
+{% if os_install == "centos" and os_centos_version == "7.6.1810" %}
+python
+epel-release
+-NetworkManager*
+{% endif %}
+{% if os_install == "centos" and os_centos_version == "7.7.1908" %}
+python
+epel-release
+-NetworkManager*
+{% endif %}
+-aic94xx-firmware
+-atmel-firmware
+-b43-openfwwf
+-bfa-firmware
+-ipw2100-firmware
+-ipw2200-firmware
+-libertas-usb8388-firmware
+-libertas-sd8686-firmware
+-libertas-sd8787-firmware
+-ql2100-firmware
+-ql2200-firmware
+-ql23xx-firmware
+-ql2400-firmware
+-ql2500-firmware
+-rt61pci-firmware
+-rt73usb-firmware
+-xorg-x11-drv-ati-firmware
+-zd1211-firmware
+-fprintd-pam
+-intltool
+-dhclient
+-dhcp*
+-postfix
+-kexec-tools
+-btrfs-tools
+-plymouth*
+-libertas*
+-alsa-*
+-biosdevname
+-iprutils
+-ivtv*
+-iwl*firmware
+{% if ks_packages is defined %}
+{%  for package in ks_packages %}
+{{ package }}
+{%  endfor %}
+{% endif %}
+%end
+
+%post --logfile=/root/ks-post.log
+# Define ssh-key for users
+# ------------
+{% if ks_users is defined %}
+{%  for user in ks_users %}
+
+mkdir -p /home/{{ user.username }}/.ssh && chmod 700 /home/{{ user.username }}/.ssh
+cat  << 'xxEOFxx' > /home/{{ user.username }}/.ssh/authorized_keys
+{{ user.ssh_key }}
+xxEOFxx
+
+chown -R {{ user.username }}:{{ user.username }} /home/{{ user.username }}/
+chmod 0600 /home/{{ user.username }}/.ssh/authorized_keys
+
+cat  << 'xxEOFxx' > /etc/sudoers.d/user_{{ user.username }}
+{{ user.username }} ALL=(ALL) NOPASSWD:ALL
+xxEOFxx
+# ------------
+{%  endfor %}
+{% endif %}
+# ------------
+# Configure sshd_config for secure your system
+cat  << 'xxEOFxx' > /etc/ssh/sshd_config
+AcceptEnv LANG LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MONETARY LC_MESSAGES
+AcceptEnv LC_PAPER LC_NAME LC_ADDRESS LC_TELEPHONE LC_MEASUREMENT
+AcceptEnv LC_IDENTIFICATION LC_ALL LANGUAGE
+AcceptEnv XMODIFIERS
+AddressFamily any
+ChallengeResponseAuthentication no
+GSSAPIAuthentication yes
+GSSAPICleanupCredentials no
+HostKey /etc/ssh/ssh_host_rsa_key
+PasswordAuthentication no
+PermitRootLogin no
+Port {{ sshd_port }}
+Protocol 2
+Subsystem sftp internal-sftp
+SyslogFacility AUTHPRIV
+UsePAM yes
+X11Forwarding yes
+PrintMotd yes
+xxEOFxx
+
+# restart sshd
+systemctl restart sshd
+%end

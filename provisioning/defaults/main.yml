@@ -1,0 +1,61 @@
+---
+# Proxmox Api informations
+proxmox_api_user: root@pam
+proxmox_api_pass: Dominik015
+proxmox_api_host: 192.168.1.11
+proxmox_api_node: pve01
+proxmox_datastore: data
+basefolder: /tmp
+serviceaccount: svc_ansible
+serviceaccount_ssh_pubkey_path: /home/onkeldom/.ssh/id_rsa_ansible
+# Iso and Kickstart informations
+#ks_path: cdrom:/dev/cdrom:/ks.cfg
+ks_path: cdrom:/ks.cfg
+# fedora or centos
+os_install: centos
+# os version, centos 7.6.1810 - centos 7.7.1908 doesnt work with ipv6, 8.0.1905
+os_centos_version: 8.0.1905
+# os version, fedora 28, 29, 30
+os_fedora_version: 30
+# architecture
+os_arch: x86_64
+# define port for sshd agent
+sshd_port: 22
+# define root password
+ks_root_pass: "$1$TTCkItYV$T9ynqTURsryC4APnVorZe/" # pass: MySuperR00tP4assw0rd
+# define your timezone
+ks_timezone: Europe/Berlin
+# define your system language
+ks_system_lang: en_US.UTF-8
+# define keyboard layout:
+ks_keyboard_layout: us
+# define your users
+ks_users:
+  - username: svc_ansible # pass: svc_ansible
+    groups: wheel
+    password: "$6$biO4a29mqIVZT0Sk$/IAlwjlcVJaPsABYMm1SZ/UjGfUOdk3s3oOKjPZ/4Qfr8MAkZiVbEfSJeGOtle/J3/Fw0c3beb7PnCr0HHBGp1"
+    id: 1000
+    ssh_key: "{{ lookup('file', '~/.ssh/id_rsa_ansible.pub') }}"
+# define packages
+ks_packages:
+  - lsof
+  - curl
+  - wget
+  - vim
+  - vim-enhanced
+  - tmux
+  - tar
+  - git
+  - wget
+  - bind-utils
+  - telnet
+  - net-tools
+  - nfs-utils
+  - bzip2
+  - cifs-utils
+  - dos2unix
+  - tcpdump
+  - rsync
+  - unzip
+  - tree
+  - xz

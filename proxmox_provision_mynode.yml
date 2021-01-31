@@ -1,0 +1,44 @@
+---
+- hosts: localhost
+  roles:
+  - proxmox/provisioning
+  vars:
+    hosts:
+    - host: onkeldom.pub.onkeldom.lan
+      pve_cores: 2
+      pve_memory: 2048
+      pve_vmid: 203
+      pve_virtio: '{"scsi0":"data:50"}'
+      pve_net: {"net0":"virtio=00:22:ff:00:02:03,bridge=vmbr1,firewall=0"}
+      ks_network:
+        ipv4_address: "192.168.2.3"
+        ipv4_netmask: "255.255.255.0"
+        ipv4_gateway: "192.168.2.1"
+        ipv4_nameservers: "192.168.1.21 192.168.1.22"
+        ipv6_address: "fdad:c001:1337:b00b:bab3:1922::3"
+        ipv6_cidr: "96"
+        ipv6_gateway: "fe80::1"
+      ks_pvs:
+        - name: pv.1
+          size: 38812
+          grow: true
+          ondrive: sda
+          crypt: false
+          volumegroups:
+            - name: system
+              logical_volumes:
+                - name: swap
+                  size: 1024
+                  path: swap
+                - name: root
+                  size: 15360
+                  fstype: xfs
+                  path: /
+                - name: log
+                  size: 5120
+                  fstype: xfs
+                  path: /var/log
+                - name: home
+                  size: 15360
+                  fstype: xfs
+                  path: /home
